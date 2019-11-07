@@ -10,17 +10,13 @@ import {
   ScrollView
 } from "react-native";
 import ToDo from "./ToDo";
+
 const {height, width} = Dimensions.get("window");
 export default class App extends React.Component {
   state = {
     newToDo: ""
   };
 
-  _controllNewTodo = text => {
-    this.setState({
-      newToDo: text
-    });
-  };
   render() {
     const {newToDo} = this.state;
     return (
@@ -37,13 +33,18 @@ export default class App extends React.Component {
             returnKeyType={"done"}
             autoCorrect={false}
           />
-          <ScrollView>
+          <ScrollView contentContainerStyle={styles.toDos}>
             <ToDo />
           </ScrollView>
         </View>
       </View>
     );
   }
+  _controllNewTodo = text => {
+    this.setState({
+      newToDo: text
+    });
+  };
 }
 
 const styles = StyleSheet.create({
@@ -85,5 +86,8 @@ const styles = StyleSheet.create({
     borderBottomColor: "#bbb",
     borderBottomWidth: 1,
     fontSize: 25
+  },
+  toDos: {
+    alignItems: "center"
   }
 });
