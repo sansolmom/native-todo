@@ -9,16 +9,25 @@ import {
   Platform,
   ScrollView
 } from "react-native";
+import {AppLoading} from "expo";
 import ToDo from "./ToDo";
+import uuidv1 from "uuid/v1";
 
 const {height, width} = Dimensions.get("window");
 export default class App extends React.Component {
   state = {
-    newToDo: ""
+    newToDo: "",
+    loadToDos: false
   };
 
+  componentDidMount = () => {
+    this._loadToDos();
+  };
   render() {
-    const {newToDo} = this.state;
+    const {newToDo, loadToDos} = this.state;
+    if (!loadToDos) {
+      return <AppLoading />;
+    }
     return (
       <View style={styles.container}>
         <StatusBar barStyle="light-content" />
@@ -26,15 +35,16 @@ export default class App extends React.Component {
         <View style={styles.card}>
           <TextInput
             style={styles.input}
-            placeholder={"Now To DO"}
+            placeholder={"New To Do"}
             placeholderTextColor={"#999"}
             value={newToDo}
             onChangeText={this._controllNewTodo}
             returnKeyType={"done"}
             autoCorrect={false}
+            onSubmitEditing={this._addToDo}
           />
           <ScrollView contentContainerStyle={styles.toDos}>
-            <ToDo />
+            <ToDo text={"Hello I'm a To Do"} />
           </ScrollView>
         </View>
       </View>
@@ -44,6 +54,39 @@ export default class App extends React.Component {
     this.setState({
       newToDo: text
     });
+  };
+
+  _loadToDos = () => {
+    this.setState({
+      loadToDos: true
+    });
+  };
+
+  _addToDo = () => {
+    const {newToDo} = this.state;
+    if (newToDo !== "") {
+      this.setState(prevState => {
+        const ID = uuidv1();
+        const newToDoObject = {
+          [ID]: {
+            id: ID,
+            isCompleted: false,
+            text: newToDo,
+            createdAt: Date.now()
+          }
+        };
+        const newState = {
+          ...prevState,
+          newToDo: "",
+          toDos: {
+            ...prevState.toDos,
+            ...newToDoObject
+          }
+        };
+
+        return {...newState};
+      });
+    }
   };
 }
 
