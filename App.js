@@ -7,7 +7,8 @@ import {
   TextInput,
   Dimensions,
   Platform,
-  ScrollView
+  ScrollView,
+  AsyncStorage
 } from "react-native";
 import {AppLoading} from "expo";
 import ToDo from "./ToDo";
@@ -17,14 +18,16 @@ const {height, width} = Dimensions.get("window");
 export default class App extends React.Component {
   state = {
     newToDo: "",
-    loadToDos: false
+    loadToDos: false,
+    toDos: {}
   };
 
   componentDidMount = () => {
     this._loadToDos();
   };
   render() {
-    const {newToDo, loadToDos} = this.state;
+    const {newToDo, loadToDos, toDos} = this.state;
+    console.log(toDos);
     if (!loadToDos) {
       return <AppLoading />;
     }
@@ -44,7 +47,15 @@ export default class App extends React.Component {
             onSubmitEditing={this._addToDo}
           />
           <ScrollView contentContainerStyle={styles.toDos}>
-            <ToDo text={"Hello I'm a To Do"} />
+            {Object.values(toDos).map(toDo => (
+              <ToDo
+                key={toDo.id}
+                deleteToDo={this._deleteToDo}
+                uncompleteToDo={this._uncompleteToDo}
+                completeToDo={this._completeToDo}
+                {...toDo}
+              />
+            ))}
           </ScrollView>
         </View>
       </View>
@@ -83,10 +94,50 @@ export default class App extends React.Component {
             ...newToDoObject
           }
         };
-
         return {...newState};
       });
     }
+  };
+  _deleteToDo = id => {
+    this.setState(prevState => {
+      const toDos = prevState.toDos;
+      delete toDos[id];
+      const newState = {
+        ...prevState,
+        ...toDos
+      };
+      return {...newState};
+    });
+  };
+  _uncompleteToDo = id => {
+    this.setState(prevState => {
+      const newState = {
+        ...prevState,
+        toDos: {
+          ...prevState.toDos,
+          [id]: {
+            ...prevState.toDos[id],
+            isCompleted: false
+          }
+        }
+      };
+      return {...newState};
+    });
+  };
+  _completeToDo = id => {
+    this.setState(prevState => {
+      const newState = {
+        ...prevState,
+        toDos: {
+          ...prevState.toDos,
+          [id]: {...prevState.toDos[id], isCompleted: true}
+        }
+      };
+      return {...newState};
+    });
+  };
+  _saveToDos = newToDos => {
+    const saveToDos = AsyncStorage.setItem("toDos", newToDos);
   };
 }
 
